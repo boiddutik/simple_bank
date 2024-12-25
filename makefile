@@ -2,7 +2,10 @@ installlocalsqlc:
 	go install github.com/sqlc-dev/sqlc/cmd/sqlc@latest
 
 installlocalmigrate:
-	go get -u github.com/golang-migrate/migrate/v4/cmd/migrate	
+	go get -u github.com/golang-migrate/migrate/v4/cmd/migrate
+
+sqlcinit:
+	sqlc init		
 
 postgres:
 	docker run --name SimpleBank-postgres -p 5432:5432 -e POSTGRES_USER=root -e POSTGRES_PASSWORD=password -d postgres
@@ -30,4 +33,4 @@ git:
 	git commit -m "commit"
 	git push	
 
-.PHONY: installlocalsqlc installlocalmigrate postgres createdb dropdb migrate migrateup migratedown git
+.PHONY: installlocalsqlc installlocalmigrate sqlcinit postgres createdb dropdb migrate migrateup migratedown git
