@@ -1,44 +1,39 @@
+-- Create accounts table
 CREATE TABLE "accounts" (
   "id" bigserial PRIMARY KEY,
   "owner" varchar(255) NOT NULL,
-  "balance" bigint NOT NULL,
-  "currency" varchar(32) NOT NULL,
-  "createdAt" timestamptz NOT NULL DEFAULT (now())
+  "balance" integer NOT NULL CHECK (balance >= 0),
+  "currency" varchar(3) NOT NULL,
+  "created_at" timestamptz NOT NULL DEFAULT (now())
 );
 
+-- Create entries table
 CREATE TABLE "entries" (
   "id" bigserial PRIMARY KEY,
-  "accountId" bigint NOT NULL,
-  "amount" bigint NOT NULL,
-  "createdAt" timestamptz NOT NULL DEFAULT (now())
+  "account_id" bigint NOT NULL,
+  "amount" integer NOT NULL, 
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  FOREIGN KEY ("account_id") REFERENCES "accounts" ("id") ON DELETE CASCADE
 );
 
+-- Create transfers table
 CREATE TABLE "transfers" (
   "id" bigserial PRIMARY KEY,
-  "fromAccountId" bigint NOT NULL,
-  "toAccountId" bigint NOT NULL,
-  "amount" bigint NOT NULL,
-  "createdAt" timestamptz NOT NULL DEFAULT (now())
+  "from_account_id" bigint NOT NULL,
+  "to_account_id" bigint NOT NULL,
+  "amount" integer NOT NULL CHECK (amount > 0), -- positive values only
+  "created_at" timestamptz NOT NULL DEFAULT (now()),
+  FOREIGN KEY ("from_account_id") REFERENCES "accounts" ("id") ON DELETE CASCADE,
+  FOREIGN KEY ("to_account_id") REFERENCES "accounts" ("id") ON DELETE CASCADE
 );
 
+-- Create indexes
 CREATE INDEX ON "accounts" ("owner");
+CREATE INDEX ON "entries" ("account_id");
+CREATE INDEX ON "transfers" ("from_account_id");
+CREATE INDEX ON "transfers" ("to_account_id");
+CREATE INDEX ON "transfers" ("from_account_id", "to_account_id");
 
-CREATE INDEX ON "entries" ("accountId");
-
-CREATE INDEX ON "transfers" ("fromAccountId");
-
-CREATE INDEX ON "transfers" ("toAccountId");
-
-CREATE INDEX ON "transfers" ("fromAccountId", "toAccountId");
-
-COMMENT ON COLUMN "entries"."amount" IS '+ve / -ve';
-
-COMMENT ON TABLE "transfers" IS 'Enforce positive amounts using a CHECK constraint in the SQL layer: CHECK (amount > 0).';
-
-COMMENT ON COLUMN "transfers"."amount" IS '+ve only';
-
-ALTER TABLE "entries" ADD FOREIGN KEY ("accountId") REFERENCES "accounts" ("id");
-
-ALTER TABLE "transfers" ADD FOREIGN KEY ("fromAccountId") REFERENCES "accounts" ("id");
-
-ALTER TABLE "transfers" ADD FOREIGN KEY ("toAccountId") REFERENCES "accounts" ("id");
+-- Add comments
+COMMENT ON COLUMN "entries"."amount" IS 'Negative or positive values';
+COMMENT ON COLUMN "transfers"."amount" IS 'Positive values only';
